@@ -1,0 +1,9 @@
+https://stackoverflow.com/questions/26251446/how-do-i-use-the-java-native-logger
+https://www.vogella.com/tutorials/Logging/article.html
+https://stackoverflow.com/questions/1611931/catching-ctrlc-in-java
+
+https://www.logicbig.com/tutorials/core-java-tutorial/http-server/http-server-basic.html
+https://ssaurel.medium.com/create-a-simple-http-web-server-in-java-3fc12b29d5fd
+https://www.programmersought.com/article/36142155392/
+
+https://www.logicbig.com/tutorials/core-java-tutorial/logging/customizing-default-format.html
