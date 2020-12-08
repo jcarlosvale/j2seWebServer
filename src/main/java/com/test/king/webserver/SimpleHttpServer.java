@@ -1,71 +1,64 @@
 package com.test.king.webserver;
 
-import com.sun.net.httpserver.HttpContext;
-import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import com.test.king.constants.LogMessages;
+import com.test.king.controller.RankingController;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 public class SimpleHttpServer implements SignalHandler {
 
-    private final static Logger logger = Logger.getLogger(SimpleHttpServer.class.getName());
+    private static final Logger logger = Logger.getLogger(SimpleHttpServer.class.getName());
 
-    private HttpServer server;
-    private ExecutorService httpThreadPool;
+    private final HttpServer server;
+    private final ExecutorService httpThreadPool;
+    private final int port;
 
-    public void start(int port, int maxConnections) throws IOException {
-        logger.info("Starting server");
-        server = HttpServer.create(new InetSocketAddress(port), maxConnections);
-        HttpContext context = server.createContext("/");
-        context.setHandler(SimpleHttpServer::handleRequest);
+    public SimpleHttpServer(int port, int maxThreadPool) throws IOException {
+        setupLogger();
+        Signal.handle(new Signal("INT"), this);
+        this.port = port;
+        server = HttpServer.create(new InetSocketAddress(this.port), 0);
+        server.createContext("/", RankingController.getInstance()::handleRequest);
 
-        httpThreadPool = Executors.newCachedThreadPool();
+        httpThreadPool = Executors.newFixedThreadPool(maxThreadPool);
         server.setExecutor(httpThreadPool);
-
-        server.start();
-        logger.log(Level.INFO, () -> "Server started using port " + port);
-        logger.log(Level.INFO, () -> "Use Control-C to stop this server");
     }
 
-    private static void handleRequest(HttpExchange httpExchange) throws IOException {
-        String response = "Hi there!";
-        httpExchange.sendResponseHeaders(200, response.getBytes().length);//response code and length
-        OutputStream os = httpExchange.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
+    private void setupLogger() throws IOException {
+        InputStream inputStream =
+                Thread.currentThread().getContextClassLoader().getResourceAsStream("logging.properties");
+
+        LogManager.getLogManager().readConfiguration(inputStream);
+    }
+
+    public void start() {
+        logger.log(Level.INFO, LogMessages.STARTING_SERVER::getMessage);
+
+        server.start();
+
+        logger.log(Level.INFO, LogMessages.SERVER_STARTED.getMessage(), String.valueOf(port));
+        logger.log(Level.INFO, LogMessages.STOP_SERVER_ORIENTATION::getMessage);
     }
 
     @Override
     public void handle(Signal sig) {
-        logger.info("Signal [" + sig.getName() + "] is received, stopServer soon...");
-        stopServer();
-        logger.info("Stop successfully.");
+        logger.log(Level.INFO, LogMessages.STOPPING_SERVER.getMessage(), sig.getName());
+        stop();
+        logger.log(Level.INFO, LogMessages.SERVER_STOPPED::getMessage);
     }
 
-    private void stopServer() {
+    public void stop() {
         server.stop(1);
         httpThreadPool.shutdown();
     }
-
-    /*
-    I use the below code to start it
-
-    this.httpServer = HttpServer.create(addr, 0);
-    HttpContext context = this.httpServer.createContext("/", new DocumentProcessHandler());
-    this.httpThreadPool = Executors.newFixedThreadPool(this.noOfThreads);
-    this.httpServer.setExecutor(this.httpThreadPool);
-    this.httpServer.start();
-and below code to stop it
-
-        this.httpServer.stop(1);
-        this.httpThreadPool.shutdownNow();
-     */
 }

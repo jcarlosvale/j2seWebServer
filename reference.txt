@@ -7,3 +7,7 @@ https://ssaurel.medium.com/create-a-simple-http-web-server-in-java-3fc12b29d5fd
 https://www.programmersought.com/article/36142155392/
 
 https://www.logicbig.com/tutorials/core-java-tutorial/logging/customizing-default-format.html
+
+https://dzone.com/articles/singleton-in-java#:~:text=The%20singleton%20design%20pattern%20is,a%20time%20per%20JVM%20instance
+https://dzone.com/articles/simple-http-server-in-java
+https://dzone.com/articles/java-11-standardized-http-client-api
