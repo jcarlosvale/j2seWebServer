@@ -7,7 +7,7 @@ import com.test.king.exceptions.InvalidIdException;
 import com.test.king.exceptions.InvalidUriException;
 import com.test.king.exceptions.RequestBodyReadException;
 import com.test.king.exceptions.RequestSessionKeyReadException;
-import com.test.king.service.SessionTokenService;
+import com.test.king.service.SessionKeyService;
 
 import java.io.*;
 import java.net.URI;
@@ -21,11 +21,11 @@ public final class RankingController {
 
     private static final Logger logger = Logger.getLogger(RankingController.class.getName());
     private static RankingController SINGLE_RANKING_CONTROLLER_INSTANCE;
-    private final SessionTokenService sessionTokenService;
+    private final SessionKeyService sessionKeyService;
 
 
     private RankingController() {
-        this.sessionTokenService = SessionTokenService.getInstance();
+        this.sessionKeyService = SessionKeyService.getInstance();
     }
 
     public static RankingController getInstance() {
@@ -51,11 +51,11 @@ public final class RankingController {
                     handlePostRequest(httpExchange);
                     break;
                 default:
-                    handleResponse(httpExchange, HttpCode.METHOD_NOT_ALLOWED);
+                    handleResponse(httpExchange, HttpCode.METHOD_NOT_ALLOWED, HttpCode.METHOD_NOT_ALLOWED.getMessage());
             }
         } catch (Exception exception) {
             logException(exception, httpExchange);
-            handleResponse(httpExchange, HttpCode.BAD_REQUEST);
+            handleResponse(httpExchange, HttpCode.BAD_REQUEST, HttpCode.BAD_REQUEST.getMessage());
         }
 }
 
@@ -98,8 +98,8 @@ public final class RankingController {
         String sessionKey = getSessionKey(uri.getQuery());
         int levelId = Integer.parseInt(segments[1]);
         int score = getScore(httpExchange.getRequestBody());
-        sessionTokenService.saveUserScoreLevel(sessionKey, levelId, score);
-        handleResponse(httpExchange, HttpCode.CREATED);
+        sessionKeyService.saveUserScoreLevel(sessionKey, levelId, score);
+        handleResponse(httpExchange, HttpCode.CREATED, HttpCode.CREATED.getMessage());
     }
 
     private String getSessionKey(String urlQuery) throws RequestSessionKeyReadException {
@@ -141,17 +141,18 @@ public final class RankingController {
         validateUriSegments(segments);
         int id = Integer.parseInt(segments[1]);
         String endpoint = segments[2];
+        String responseBody;
         switch (endpoint) {
             case "login":
-                sessionTokenService.login(id);
+                responseBody = sessionKeyService.login(id);
                 break;
             case "highscorelist":
-                sessionTokenService.highScoreList(id);
+                responseBody = sessionKeyService.highScoreList(id);
                 break;
             default:
                 throw new InvalidUriException();
         }
-        handleResponse(httpExchange, HttpCode.OK);
+        handleResponse(httpExchange, HttpCode.OK, responseBody);
     }
 
     private void validateUriSegments(String[] segments) throws InvalidUriException, InvalidIdException {
@@ -163,12 +164,12 @@ public final class RankingController {
         }
     }
 
-    private void handleResponse(HttpExchange httpExchange, HttpCode httpCode) {
+    private void handleResponse(HttpExchange httpExchange, HttpCode httpCode, String responseBody) {
         OutputStream outputStream = httpExchange.getResponseBody();
         try {
-            httpExchange.sendResponseHeaders(httpCode.getCode(), httpCode.getMessage().length());
+            httpExchange.sendResponseHeaders(httpCode.getCode(), responseBody.length());
             httpExchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
-            outputStream.write(httpCode.getMessage().getBytes());
+            outputStream.write(responseBody.getBytes());
             outputStream.flush();
             outputStream.close();
         } catch (IOException exception) {

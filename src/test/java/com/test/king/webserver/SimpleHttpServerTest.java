@@ -1,8 +1,8 @@
 package com.test.king.webserver;
 
 import com.test.king.constants.HttpCode;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -10,24 +10,26 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 
 public class SimpleHttpServerTest {
 
-    private SimpleHttpServer simpleHttpServer;
-    private HttpClient httpClient;
+    private static SimpleHttpServer simpleHttpServer;
+    private static HttpClient httpClient;
 
-    @Before
-    public void setup() throws IOException {
-        simpleHttpServer = new SimpleHttpServer(8080,10);
-        simpleHttpServer.start();
-
-        httpClient = HttpClient.newBuilder().build();
+    @BeforeClass
+    public static void setup() throws IOException {
+        if (Objects.isNull(simpleHttpServer)) {
+            simpleHttpServer = new SimpleHttpServer(8080,10);
+            simpleHttpServer.start();
+            httpClient = HttpClient.newBuilder().build();
+        }
     }
 
-    @After
-    public void stop() {
+    @AfterClass
+    public static void stop() {
         simpleHttpServer.stop();
     }
 

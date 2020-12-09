@@ -3,20 +3,20 @@ package com.test.king.dto;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public final class SessionTokenDto {
+public final class SessionKeyDto {
 
-    private final UserDto userDto;
+    private final int userId;
     private final String sessionKey;
     private final LocalDateTime expiryDateTime;
 
-    public SessionTokenDto(final String login, final String sessionKey, final LocalDateTime expiryDateTime) {
-        this.userDto = new UserDto(login);
+    public SessionKeyDto(final int userId, final String sessionKey, final LocalDateTime expiryDateTime) {
+        this.userId = userId;
         this.sessionKey = sessionKey;
         this.expiryDateTime = expiryDateTime;
     }
 
-    public UserDto getUserDto() {
-        return userDto;
+    public int getUserId() {
+        return userId;
     }
 
     public String getSessionKey() {
@@ -29,7 +29,7 @@ public final class SessionTokenDto {
 
     @Override
     public String toString() {
-        return "SessionTokenDto{" + "userDto=" + userDto + ", sessionKey='" + sessionKey + '\'' + ", expiryDateTime=" +
+        return "SessionKeyDto{" + "userId=" + userId + ", sessionKey='" + sessionKey + '\'' + ", expiryDateTime=" +
                 expiryDateTime + '}';
     }
 
@@ -41,7 +41,7 @@ public final class SessionTokenDto {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        SessionTokenDto that = (SessionTokenDto) o;
+        SessionKeyDto that = (SessionKeyDto) o;
         return sessionKey.equals(that.sessionKey);
     }
 

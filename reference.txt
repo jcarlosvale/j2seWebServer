@@ -16,3 +16,5 @@ https://httpstatuses.com/
 melhoria:
 mensagem das excecoes
 cabecalhos de resposta
+
+application properties file.
