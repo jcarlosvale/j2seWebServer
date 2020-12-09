@@ -41,17 +41,40 @@ public final class RankingController {
         logger.log(Level.INFO, LogMessages.LOGIN_ENDPOINT_START.getMessage());
         logger.log(Level.INFO, LogMessages.METHOD.getMessage(), httpExchange.getRequestMethod());
         logger.log(Level.INFO, LogMessages.URI.getMessage(), httpExchange.getRequestURI());
+        try {
+            String requestMethod = httpExchange.getRequestMethod();
+            switch (requestMethod.toUpperCase(Locale.ENGLISH)) {
+                case "GET":
+                    handleGetRequest(httpExchange);
+                    break;
+                case "POST":
+                    handlePostRequest(httpExchange);
+                    break;
+                default:
+                    handleResponse(httpExchange, HttpCode.METHOD_NOT_ALLOWED);
+            }
+        } catch (Exception exception) {
+            logException(exception, httpExchange);
+            handleResponse(httpExchange, HttpCode.BAD_REQUEST);
+        }
+}
 
-        String requestMethod = httpExchange.getRequestMethod();
-        switch (requestMethod.toUpperCase(Locale.ENGLISH)) {
-            case "GET":
-                handleGetRequest(httpExchange);
-                break;
-            case "POST":
-                handlePostRequest(httpExchange);
-                break;
-            default:
-                handleResponse(httpExchange, HttpCode.METHOD_NOT_ALLOWED);
+    private void logException(Exception exception, HttpExchange httpExchange) {
+        logger.log(Level.SEVERE, LogMessages.EXCEPTION_MESSAGE.getMessage(), exception.getMessage());
+        if (exception instanceof NumberFormatException || exception instanceof InvalidIdException) {
+            logger.log(Level.SEVERE, LogMessages.INVALID_ID.getMessage(), httpExchange.getRequestURI().getPath());
+            return;
+        }
+        if (exception instanceof InvalidUriException) {
+            logger.log(Level.SEVERE, LogMessages.INVALID_URI.getMessage(), httpExchange.getRequestURI().getPath());
+            return;
+        }
+        if (exception instanceof RequestBodyReadException) {
+            logger.log(Level.SEVERE, LogMessages.INVALID_BODY_REQUEST.getMessage());
+            return;
+        }
+        if (exception instanceof RequestSessionKeyReadException) {
+            logger.log(Level.SEVERE, LogMessages.INVALID_SESSION_KEY.getMessage(), httpExchange.getRequestURI().getQuery());
         }
     }
 
@@ -64,33 +87,19 @@ public final class RankingController {
      *     <score> : 31 bit unsigned integer number
      *     Example: POST http://localhost:8081/2/score?sessionkey=UICSNDK (with the post body: 1500)
      */
-    private void handlePostRequest(HttpExchange httpExchange) {
+    private void handlePostRequest(HttpExchange httpExchange)
+            throws InvalidUriException, InvalidIdException, RequestSessionKeyReadException, RequestBodyReadException {
         URI uri = httpExchange.getRequestURI();
         String[] segments = uri.getPath().split("/");
-        try {
-            validateUriSegments(segments);
-            String sessionKey = getSessionKey(uri.getQuery());
-            int levelId = Integer.parseInt(segments[1]);
-            int score = getScore(httpExchange.getRequestBody());
-            sessionTokenService.saveUserScoreLevel(sessionKey, levelId, score);
-            handleResponse(httpExchange, HttpCode.CREATED);
-        } catch (NumberFormatException | InvalidIdException exception) {
-            logger.log(Level.SEVERE, LogMessages.INVALID_LEVEL_ID.getMessage(), segments[1]);
-            logger.log(Level.SEVERE, LogMessages.EXCEPTION_MESSAGE.getMessage(), exception.getMessage());
-            handleResponse(httpExchange, HttpCode.BAD_REQUEST);
-        } catch (InvalidUriException exception) {
-            logger.log(Level.SEVERE, LogMessages.INVALID_URI.getMessage(), uri.getPath());
-            logger.log(Level.SEVERE, LogMessages.EXCEPTION_MESSAGE.getMessage(), exception.getMessage());
-            handleResponse(httpExchange, HttpCode.BAD_REQUEST);
-        } catch (RequestBodyReadException exception) {
-            logger.log(Level.SEVERE, LogMessages.INVALID_BODY_REQUEST.getMessage());
-            logger.log(Level.SEVERE, LogMessages.EXCEPTION_MESSAGE.getMessage(), exception.getMessage());
-            handleResponse(httpExchange, HttpCode.BAD_REQUEST);
-        } catch (RequestSessionKeyReadException exception) {
-            logger.log(Level.SEVERE, LogMessages.INVALID_SESSION_KEY.getMessage(), uri.getQuery());
-            logger.log(Level.SEVERE, LogMessages.EXCEPTION_MESSAGE.getMessage(), exception.getMessage());
-            handleResponse(httpExchange, HttpCode.BAD_REQUEST);
+        validateUriSegments(segments);
+        if (! segments[2].contains("score")) {
+            throw new InvalidUriException();
         }
+        String sessionKey = getSessionKey(uri.getQuery());
+        int levelId = Integer.parseInt(segments[1]);
+        int score = getScore(httpExchange.getRequestBody());
+        sessionTokenService.saveUserScoreLevel(sessionKey, levelId, score);
+        handleResponse(httpExchange, HttpCode.CREATED);
     }
 
     private String getSessionKey(String urlQuery) throws RequestSessionKeyReadException {
@@ -126,34 +135,23 @@ public final class RankingController {
      * <sessionkey> : A string representing session (valid for 10 minutes).
      * Example: http://localhost:8081/4711/login --> UICSNDK
      */
-    private void handleGetRequest(HttpExchange httpExchange) {
+    private void handleGetRequest(HttpExchange httpExchange) throws InvalidUriException, InvalidIdException {
         URI uri = httpExchange.getRequestURI();
         String[] segments = uri.getPath().split("/");
-        try{
-            validateUriSegments(segments);
-            int id = Integer.parseInt(segments[1]);
-            String endpoint = segments[2];
-            switch (endpoint) {
-                case "login":
-                    sessionTokenService.login(id);
-                    break;
-                case "highscorelist":
-                    sessionTokenService.highScoreList(id);
-                    break;
-                default:
-                    handleResponse(httpExchange, HttpCode.BAD_REQUEST);
-                    break;
-            }
-            handleResponse(httpExchange, HttpCode.OK);
-        } catch (NumberFormatException | InvalidIdException exception) {
-            logger.log(Level.SEVERE, LogMessages.INVALID_ID.getMessage(), segments[1]);
-            logger.log(Level.SEVERE, LogMessages.EXCEPTION_MESSAGE.getMessage(), exception.getMessage());
-            handleResponse(httpExchange, HttpCode.BAD_REQUEST);
-        } catch (InvalidUriException exception) {
-            logger.log(Level.SEVERE, LogMessages.INVALID_URI.getMessage(), uri.getPath());
-            logger.log(Level.SEVERE, LogMessages.EXCEPTION_MESSAGE.getMessage(), exception.getMessage());
-            handleResponse(httpExchange, HttpCode.BAD_REQUEST);
+        validateUriSegments(segments);
+        int id = Integer.parseInt(segments[1]);
+        String endpoint = segments[2];
+        switch (endpoint) {
+            case "login":
+                sessionTokenService.login(id);
+                break;
+            case "highscorelist":
+                sessionTokenService.highScoreList(id);
+                break;
+            default:
+                throw new InvalidUriException();
         }
+        handleResponse(httpExchange, HttpCode.OK);
     }
 
     private void validateUriSegments(String[] segments) throws InvalidUriException, InvalidIdException {
@@ -165,7 +163,7 @@ public final class RankingController {
         }
     }
 
-    private static void handleResponse(HttpExchange httpExchange, HttpCode httpCode) {
+    private void handleResponse(HttpExchange httpExchange, HttpCode httpCode) {
         OutputStream outputStream = httpExchange.getResponseBody();
         try {
             httpExchange.sendResponseHeaders(httpCode.getCode(), httpCode.getMessage().length());

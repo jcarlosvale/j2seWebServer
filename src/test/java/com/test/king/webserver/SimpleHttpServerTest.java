@@ -32,11 +32,168 @@ public class SimpleHttpServerTest {
     }
 
     @Test
+    public void testInvalidHttpMethodDelete() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/1234/login"))
+                .DELETE()
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.METHOD_NOT_ALLOWED.getCode(), response.statusCode());
+        assertEquals(HttpCode.METHOD_NOT_ALLOWED.getMessage(), response.body());
+    }
+
+    @Test
+    public void testInvalidHttpMethodPut() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/1234/login"))
+                .PUT(HttpRequest.BodyPublishers.ofString("someString"))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.METHOD_NOT_ALLOWED.getCode(), response.statusCode());
+        assertEquals(HttpCode.METHOD_NOT_ALLOWED.getMessage(), response.body());
+    }
+
+    @Test
+    public void testInvalidIdGetRequest() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/1a23/login"))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+
+        request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/1a23/highscorelist"))
+                .build();
+        response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+
+        request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/-123/login"))
+                .build();
+        response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+
+        request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/-123/highscorelist"))
+                .build();
+        response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+    }
+
+    @Test
+    public void testInvalidUriGetRequest() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/123/someEndpoint"))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+
+        request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/123/123/login"))
+                .build();
+        response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+
+        request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/123/123/highscorelist"))
+                .build();
+        response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+    }
+
+    @Test
+    public void testInvalidUriPostRequest() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/123/someEndpoint?sessionkey=UICSNDK"))
+                .POST(HttpRequest.BodyPublishers.ofString("1500"))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+
+        request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/123/123/score?sessionKEY=UICSNDK"))
+                .POST(HttpRequest.BodyPublishers.ofString("1500"))
+                .build();
+        response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+
+        request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/123/123/score?sessionkey=UICSNDK"))
+                .POST(HttpRequest.BodyPublishers.ofString("1500"))
+                .build();
+        response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+    }
+
+    @Test
+    public void testInvalidIdPostRequest() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/1a23/score?sessionkey=UICSNDK"))
+                .POST(HttpRequest.BodyPublishers.ofString("1500"))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+
+        request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/-123/score?sessionkey=UICSNDK"))
+                .POST(HttpRequest.BodyPublishers.ofString("1500"))
+                .build();
+        response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+    }
+
+    @Test
+    public void testInvalidScorePostRequest() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/123/score?sessionkey=UICSNDK"))
+                .POST(HttpRequest.BodyPublishers.ofString("someScore"))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+
+        request = HttpRequest
+                .newBuilder()
+                .uri(URI.create("http://localhost:8080/123/score?sessionkey=UICSNDK"))
+                .POST(HttpRequest.BodyPublishers.ofString("-1"))
+                .build();
+        response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
+        assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
+    }
+
+    @Test
     public void someGet() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost:8080/1234/login")).build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         assertEquals(HttpCode.OK.getCode(), response.statusCode());
         assertEquals(HttpCode.OK.getMessage(), response.body());
     }
-
 }

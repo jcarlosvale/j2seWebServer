@@ -27,17 +27,15 @@ public class SimpleHttpServer implements SignalHandler {
         setupLogger();
         Signal.handle(new Signal("INT"), this);
         this.port = port;
-        server = HttpServer.create(new InetSocketAddress(this.port), 0);
-        server.createContext("/", RankingController.getInstance()::handleRequest);
-
-        httpThreadPool = Executors.newFixedThreadPool(maxThreadPool);
-        server.setExecutor(httpThreadPool);
+        this.server = HttpServer.create(new InetSocketAddress(this.port), 0);
+        this.server.createContext("/", RankingController.getInstance()::handleRequest);
+        this.httpThreadPool = Executors.newFixedThreadPool(maxThreadPool);
+        this.server.setExecutor(httpThreadPool);
     }
 
     private void setupLogger() throws IOException {
         InputStream inputStream =
                 Thread.currentThread().getContextClassLoader().getResourceAsStream("logging.properties");
-
         LogManager.getLogManager().readConfiguration(inputStream);
     }
 
@@ -52,13 +50,15 @@ public class SimpleHttpServer implements SignalHandler {
 
     @Override
     public void handle(Signal sig) {
-        logger.log(Level.INFO, LogMessages.STOPPING_SERVER.getMessage(), sig.getName());
         stop();
-        logger.log(Level.INFO, LogMessages.SERVER_STOPPED::getMessage);
     }
 
     public void stop() {
+        logger.log(Level.INFO, LogMessages.STOPPING_SERVER.getMessage());
+
         server.stop(1);
         httpThreadPool.shutdown();
+
+        logger.log(Level.INFO, LogMessages.SERVER_STOPPED::getMessage);
     }
 }

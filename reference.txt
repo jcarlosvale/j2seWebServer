@@ -11,3 +11,8 @@ https://www.logicbig.com/tutorials/core-java-tutorial/logging/customizing-defaul
 https://dzone.com/articles/singleton-in-java#:~:text=The%20singleton%20design%20pattern%20is,a%20time%20per%20JVM%20instance
 https://dzone.com/articles/simple-http-server-in-java
 https://dzone.com/articles/java-11-standardized-http-client-api
+https://httpstatuses.com/
+
+melhoria:
+mensagem das excecoes
+cabecalhos de resposta
