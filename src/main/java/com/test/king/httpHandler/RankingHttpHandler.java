@@ -1,12 +1,9 @@
-package com.test.king.controller;
+package com.test.king.httpHandler;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.test.king.constants.HttpCode;
 import com.test.king.constants.LogMessages;
-import com.test.king.exceptions.InvalidIdException;
-import com.test.king.exceptions.InvalidUriException;
-import com.test.king.exceptions.RequestBodyReadException;
-import com.test.king.exceptions.RequestSessionKeyReadException;
+import com.test.king.exceptions.*;
 import com.test.king.service.SessionKeyService;
 
 import java.io.*;
@@ -17,21 +14,21 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public final class RankingController {
+public final class RankingHttpHandler {
 
-    private static final Logger logger = Logger.getLogger(RankingController.class.getName());
-    private static RankingController SINGLE_RANKING_CONTROLLER_INSTANCE;
+    private static final Logger logger = Logger.getLogger(RankingHttpHandler.class.getName());
+    private static RankingHttpHandler SINGLE_RANKING_CONTROLLER_INSTANCE;
     private final SessionKeyService sessionKeyService;
 
 
-    private RankingController() {
-        this.sessionKeyService = SessionKeyService.getInstance();
+    private RankingHttpHandler(final SessionKeyService sessionKeyService) {
+        this.sessionKeyService = sessionKeyService;
     }
 
-    public static RankingController getInstance() {
+    public static RankingHttpHandler getInstance(final SessionKeyService sessionKeyService) {
         if (Objects.isNull(SINGLE_RANKING_CONTROLLER_INSTANCE)) {
-            synchronized (RankingController.class) {
-                SINGLE_RANKING_CONTROLLER_INSTANCE = new RankingController();
+            synchronized (RankingHttpHandler.class) {
+                SINGLE_RANKING_CONTROLLER_INSTANCE = new RankingHttpHandler(sessionKeyService);
             }
         }
         return SINGLE_RANKING_CONTROLLER_INSTANCE;
@@ -55,7 +52,11 @@ public final class RankingController {
             }
         } catch (Exception exception) {
             logException(exception, httpExchange);
-            handleResponse(httpExchange, HttpCode.BAD_REQUEST, HttpCode.BAD_REQUEST.getMessage());
+            if (exception instanceof InvalidSessionKeyException) {
+                handleResponse(httpExchange, HttpCode.UNAUTHORIZED, HttpCode.UNAUTHORIZED.getMessage());
+            } else {
+                handleResponse(httpExchange, HttpCode.BAD_REQUEST, HttpCode.BAD_REQUEST.getMessage());
+            }
         }
 }
 
@@ -75,6 +76,10 @@ public final class RankingController {
         }
         if (exception instanceof RequestSessionKeyReadException) {
             logger.log(Level.SEVERE, LogMessages.INVALID_SESSION_KEY.getMessage(), httpExchange.getRequestURI().getQuery());
+            return;
+        }
+        if (exception instanceof InvalidSessionKeyException) {
+            logger.log(Level.SEVERE, LogMessages.INVALID_SESSION_KEY.getMessage(), httpExchange.getRequestURI().getQuery());
         }
     }
 
@@ -88,7 +93,8 @@ public final class RankingController {
      *     Example: POST http://localhost:8081/2/score?sessionkey=UICSNDK (with the post body: 1500)
      */
     private void handlePostRequest(HttpExchange httpExchange)
-            throws InvalidUriException, InvalidIdException, RequestSessionKeyReadException, RequestBodyReadException {
+            throws InvalidUriException, InvalidIdException, RequestSessionKeyReadException, RequestBodyReadException,
+            InvalidSessionKeyException {
         URI uri = httpExchange.getRequestURI();
         String[] segments = uri.getPath().split("/");
         validateUriSegments(segments);
@@ -168,7 +174,7 @@ public final class RankingController {
         OutputStream outputStream = httpExchange.getResponseBody();
         try {
             httpExchange.sendResponseHeaders(httpCode.getCode(), responseBody.length());
-            httpExchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
+            httpExchange.getResponseHeaders().set("Content-Type", "text/plain; charset=UTF-8");
             outputStream.write(responseBody.getBytes());
             outputStream.flush();
             outputStream.close();

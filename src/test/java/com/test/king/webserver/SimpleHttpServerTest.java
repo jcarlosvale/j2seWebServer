@@ -190,12 +190,4 @@ public class SimpleHttpServerTest {
         assertEquals(HttpCode.BAD_REQUEST.getCode(), response.statusCode());
         assertEquals(HttpCode.BAD_REQUEST.getMessage(), response.body());
     }
-
-    @Test
-    public void someGet() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost:8080/1234/login")).build();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        assertEquals(HttpCode.OK.getCode(), response.statusCode());
-        assertEquals(HttpCode.OK.getMessage(), response.body());
-    }
 }

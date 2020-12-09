@@ -1,26 +1,29 @@
 package com.test.king.service;
 
+import com.test.king.dto.ScoreDto;
 import com.test.king.dto.SessionKeyDto;
+import com.test.king.exceptions.InvalidSessionKeyException;
 import com.test.king.repository.SessionKeyRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public final class SessionKeyService {
+public class SessionKeyService {
 
     public static final int EXPIRY_TIME_IN_MINUTES = 10;
     private static SessionKeyService SINGLE_SESSION_TOKEN_SERVICE_INSTANCE;
     private final SessionKeyRepository sessionKeyRepository;
 
-    private SessionKeyService() {
-        this.sessionKeyRepository = SessionKeyRepository.getInstance();
+    private SessionKeyService(SessionKeyRepository sessionKeyRepository) {
+        this.sessionKeyRepository = sessionKeyRepository;
     }
 
-    public static SessionKeyService getInstance() {
+    public static SessionKeyService getInstance(SessionKeyRepository sessionKeyRepository) {
         if (Objects.isNull(SINGLE_SESSION_TOKEN_SERVICE_INSTANCE)) {
             synchronized (SessionKeyService.class) {
-                SINGLE_SESSION_TOKEN_SERVICE_INSTANCE = new SessionKeyService();
+                SINGLE_SESSION_TOKEN_SERVICE_INSTANCE = new SessionKeyService(sessionKeyRepository);
             }
         }
         return SINGLE_SESSION_TOKEN_SERVICE_INSTANCE;
@@ -35,19 +38,39 @@ public final class SessionKeyService {
     }
 
     String generateSessionKey() {
-        return UUID.randomUUID().toString().replace("-","");
+        String sessionKey;
+
+        do {
+            sessionKey = UUID.randomUUID().toString().replace("-","");
+        } while(sessionKeyRepository.exists(sessionKey));
+
+        return sessionKey;
     }
 
-    public String login(int id) {
-        SessionKeyDto sessionKeyDto = generateSessionTokenDto(id);
-        sessionKeyRepository.saveOrReplace(sessionKeyDto);
+    public String login(int userId) {
+        SessionKeyDto sessionKeyDto = generateSessionTokenDto(userId);
+        sessionKeyRepository.save(sessionKeyDto);
         return sessionKeyDto.getSessionKey();
     }
 
-    public String highScoreList(int id) {
-        return "";
+    public String highScoreList(int levelId) {
+        List<ScoreDto> highScoreList = sessionKeyRepository.getHighScoreList(levelId);
+        return parse(highScoreList);
     }
 
-    public void saveUserScoreLevel(String sessionKey, int levelId, int score) {
+    private String parse(List<ScoreDto> highScoreList) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for(ScoreDto scoreDto : highScoreList) {
+            stringBuilder.append(String.format(",%d=%d", scoreDto.getUserId(), scoreDto.getScore()));
+        }
+        return (stringBuilder.length() > 0) ? stringBuilder.substring(1) : " ";
+    }
+
+    public void saveUserScoreLevel(String sessionKey, int levelId, int score) throws InvalidSessionKeyException {
+        if (sessionKeyRepository.isValid(sessionKey)) {
+            sessionKeyRepository.saveScoreLevel(levelId, score, sessionKey);
+        } else {
+            throw new InvalidSessionKeyException();
+        }
     }
 }

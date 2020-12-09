@@ -18,3 +18,5 @@ mensagem das excecoes
 cabecalhos de resposta
 
 application properties file.
+controle de tokens por userID
+expurgo de tokens vencidos.

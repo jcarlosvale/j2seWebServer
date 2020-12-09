@@ -2,7 +2,9 @@ package com.test.king.webserver;
 
 import com.sun.net.httpserver.HttpServer;
 import com.test.king.constants.LogMessages;
-import com.test.king.controller.RankingController;
+import com.test.king.httpHandler.RankingHttpHandler;
+import com.test.king.repository.SessionKeyRepository;
+import com.test.king.service.SessionKeyService;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
@@ -28,7 +30,9 @@ public class SimpleHttpServer implements SignalHandler {
         Signal.handle(new Signal("INT"), this);
         this.port = port;
         this.server = HttpServer.create(new InetSocketAddress(this.port), 0);
-        this.server.createContext("/", RankingController.getInstance()::handleRequest);
+        RankingHttpHandler rankingHttpHandler =
+                RankingHttpHandler.getInstance(SessionKeyService.getInstance(SessionKeyRepository.getInstance()));
+        this.server.createContext("/", rankingHttpHandler::handleRequest);
         this.httpThreadPool = Executors.newFixedThreadPool(maxThreadPool);
         this.server.setExecutor(httpThreadPool);
     }

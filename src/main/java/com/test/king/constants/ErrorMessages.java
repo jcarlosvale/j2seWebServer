@@ -1,9 +1,9 @@
 package com.test.king.constants;
 
 public enum ErrorMessages {
-    NULL_LOGIN("Login is NULL"),
     INVALID_URI("Invalid URI"),
-    INVALID_ID("Invalid ID");
+    INVALID_ID("Invalid ID"),
+    INVALID_SESSION_KEY("Invalid Session Key");
 
     private final String message;
 
