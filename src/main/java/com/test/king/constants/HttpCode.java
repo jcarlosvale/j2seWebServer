@@ -1,5 +1,8 @@
 package com.test.king.constants;
 
+/**
+ * Used by Http Handle as http code responses.
+ */
 public enum HttpCode {
     METHOD_NOT_ALLOWED(405, "Method Not Allowed"),
     BAD_REQUEST(400, "Bad Request"),

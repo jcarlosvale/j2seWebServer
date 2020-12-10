@@ -1,5 +1,8 @@
 package com.test.king.constants;
 
+/**
+ * Log messages constants.
+ */
 public enum LogMessages {
     STARTING_SERVER("Starting server"),
     SERVER_STARTED("Server started using port {0}"),
@@ -16,9 +19,9 @@ public enum LogMessages {
     INVALID_URI("Invalid URI: {0}"),
     INVALID_SESSION_KEY("Invalid Session Key in the query: {0}"),
     INVALID_BODY_REQUEST("Invalid body request"),
-    EXCEPTION_MESSAGE("Exception message: {0}"),
-    //TODO: REMOVE IT
-    MOCK_HANDLE("Mock handle test");
+    LOGIN_SERVICE_START("Generating Session Key to user: {0}"),
+    LOGIN_SERVICE_END("Generated the SessionKeyDto: {0}"),
+    EXCEPTION_MESSAGE("Exception message: {0}");
 
     private final String message;
 

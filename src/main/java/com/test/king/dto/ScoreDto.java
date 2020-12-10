@@ -2,6 +2,9 @@ package com.test.king.dto;
 
 import java.util.Objects;
 
+/**
+ * Represents the Score of an User in certain Level stored in the application.
+ */
 public class ScoreDto {
     private final int level;
     private final int score;
@@ -32,8 +35,12 @@ public class ScoreDto {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o){
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ScoreDto scoreDto = (ScoreDto) o;
         return level == scoreDto.level && score == scoreDto.score && userId == scoreDto.userId;
     }

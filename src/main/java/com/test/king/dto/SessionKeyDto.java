@@ -3,6 +3,9 @@ package com.test.king.dto;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+/**
+ * Represents the Session Key used by an User with an Expire Date Time.
+ */
 public final class SessionKeyDto {
 
     private final int userId;

@@ -6,7 +6,7 @@ import com.test.king.dto.SessionKeyDto;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public final class SessionKeyRepository {
+public class SessionKeyRepository {
 
     private static final int MAX_RANK_SIZE = 15;
     private static SessionKeyRepository SINGLE_SESSION_KEY_REPOSITORY_INSTANCE;

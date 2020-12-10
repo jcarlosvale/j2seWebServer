@@ -2,7 +2,7 @@ package com.test.king.webserver;
 
 import com.sun.net.httpserver.HttpServer;
 import com.test.king.constants.LogMessages;
-import com.test.king.httpHandler.RankingHttpHandler;
+import com.test.king.httphandler.RankingHttpHandler;
 import com.test.king.repository.SessionKeyRepository;
 import com.test.king.service.SessionKeyService;
 import sun.misc.Signal;
