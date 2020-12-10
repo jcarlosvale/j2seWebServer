@@ -6,10 +6,17 @@ import com.test.king.dto.SessionKeyDto;
 import java.time.LocalDateTime;
 import java.util.*;
 
+/**
+ * Represents the "storage" of our Session Keys.
+ * It's a singleton class
+ * They are used two maps:
+ * - Map of SessionKeyDTO (userid, sessionKey, expiryDate) mapped by SessionKey, stores the Session Keys
+ * - Map of List of ScoreDTO (level, score, userId) mapped by LevelId, stores the top 15 scores.
+ */
 public class SessionKeyRepository {
 
-    private static final int MAX_RANK_SIZE = 15;
-    private static SessionKeyRepository SINGLE_SESSION_KEY_REPOSITORY_INSTANCE;
+    public static final int MAX_RANK_SIZE = 15;
+    private static SessionKeyRepository sessionKeyRepository;
 
     private final Map<String, SessionKeyDto> mapOfSessionKeyDtoBySessionKey;
     private final Map<Integer, List<ScoreDto>> mapOfScoreDtoByLevelId;
@@ -20,23 +27,43 @@ public class SessionKeyRepository {
     }
 
     public static SessionKeyRepository getInstance() {
-        if (Objects.isNull(SINGLE_SESSION_KEY_REPOSITORY_INSTANCE)) {
+        if (Objects.isNull(sessionKeyRepository)) {
             synchronized (SessionKeyRepository.class) {
-                SINGLE_SESSION_KEY_REPOSITORY_INSTANCE = new SessionKeyRepository();
+                sessionKeyRepository = new SessionKeyRepository();
             }
         }
-        return SINGLE_SESSION_KEY_REPOSITORY_INSTANCE;
+        return sessionKeyRepository;
     }
 
+    /**
+     * Saves a Session Key Dto into the Map.
+     * It's a synchronized map to avoid concurrent threads to manipulate the map.
+     * @param sessionKeyDto DTO to be saved in the Map.
+     */
     public synchronized void save(SessionKeyDto sessionKeyDto) {
         mapOfSessionKeyDtoBySessionKey.put(sessionKeyDto.getSessionKey(), sessionKeyDto);
     }
 
+    /**
+     * Verifies if a session key is present in the Map and not expired.
+     * @param sessionKey    session key to be verified
+     * @return  True if is valid, False otherwise.
+     */
     public boolean isValid(String sessionKey) {
         SessionKeyDto sessionKeyDto = mapOfSessionKeyDtoBySessionKey.get(sessionKey);
         return (Objects.nonNull(sessionKeyDto) && (!sessionKeyDto.getExpiryDateTime().isBefore(LocalDateTime.now())));
     }
 
+    /**
+     * Saves the score of a given user, associated by the session key, in a level.
+     * Rules:
+     * - the map of Score is sorted in descending way.
+     * - the map of Score keeps at maximum 15 top score records by level id.
+     * It's a synchronized map to avoid concurrent threads to manipulate the map.
+     * @param levelId   level id to be stored
+     * @param score     score to be stored in the map of scoreDto
+     * @param sessionKey    session key containing the user id.
+     */
     public synchronized void saveScoreLevel(int levelId, int score, String sessionKey) {
         List<ScoreDto> listOfScore = mapOfScoreDtoByLevelId.getOrDefault(levelId, new ArrayList<>());
         int userId = mapOfSessionKeyDtoBySessionKey.get(sessionKey).getUserId();

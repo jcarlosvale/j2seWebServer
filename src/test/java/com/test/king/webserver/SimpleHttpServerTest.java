@@ -265,7 +265,7 @@ public class SimpleHttpServerTest {
 
         //insert
         int score = 1500;
-        int levelId = 2;
+        int levelId = 200;
         request = HttpRequest
                 .newBuilder()
                 .uri(URI.create("http://localhost:8080/"+levelId+"/score?sessionkey="+sessionKey))

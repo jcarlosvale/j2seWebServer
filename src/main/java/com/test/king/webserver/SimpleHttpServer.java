@@ -24,16 +24,18 @@ public class SimpleHttpServer implements SignalHandler {
     private final HttpServer server;
     private final ExecutorService httpThreadPool;
     private final int port;
+    private final int maxThreadPool;
 
     public SimpleHttpServer(int port, int maxThreadPool) throws IOException {
         setupLogger();
         Signal.handle(new Signal("INT"), this);
         this.port = port;
+        this.maxThreadPool = maxThreadPool;
         this.server = HttpServer.create(new InetSocketAddress(this.port), 0);
         RankingHttpHandler rankingHttpHandler =
                 RankingHttpHandler.getInstance(SessionKeyService.getInstance(SessionKeyRepository.getInstance()));
         this.server.createContext("/", rankingHttpHandler::handleRequest);
-        this.httpThreadPool = Executors.newFixedThreadPool(maxThreadPool);
+        this.httpThreadPool = Executors.newFixedThreadPool(this.maxThreadPool);
         this.server.setExecutor(httpThreadPool);
     }
 
@@ -48,7 +50,7 @@ public class SimpleHttpServer implements SignalHandler {
 
         server.start();
 
-        logger.log(Level.INFO, LogMessages.SERVER_STARTED.getMessage(), String.valueOf(port));
+        logger.log(Level.INFO, LogMessages.SERVER_STARTED.getMessage(), new String[]{String.valueOf(port), String.valueOf(maxThreadPool)});
         logger.log(Level.INFO, LogMessages.STOP_SERVER_ORIENTATION::getMessage);
     }
 

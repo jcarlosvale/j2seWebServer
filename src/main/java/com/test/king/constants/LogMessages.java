@@ -5,7 +5,7 @@ package com.test.king.constants;
  */
 public enum LogMessages {
     STARTING_SERVER("Starting server"),
-    SERVER_STARTED("Server started using port {0}"),
+    SERVER_STARTED("Server started using port {0} thread pool size {1}"),
     STOP_SERVER_ORIENTATION("Use Control-C to stop this server"),
     STOPPING_SERVER("Stopping the server soon..."),
     SERVER_STOPPED("Stop successfully."),

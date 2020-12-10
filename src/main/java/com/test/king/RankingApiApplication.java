@@ -4,6 +4,15 @@ import com.test.king.webserver.SimpleHttpServer;
 
 import java.io.IOException;
 
+/**
+ * Executable class to start the WebServer and specific http handler
+ * It is possible to start the application in a different PORT and using different ThreadPool size:
+ * ex1: java -jar target\rankingAPI-1.0.jar 8081  --> starting at port 8081
+ * ex2:  java -jar target\rankingAPI-1.0.jar 8081 5  --> starting at port 8081 and thread pool size 5
+ * Default values:
+ * - port 8080
+ * - size of thread pool = 10
+ */
 public class RankingApiApplication {
 
     public static void main(String[] args) throws IOException {
@@ -27,7 +36,7 @@ public class RankingApiApplication {
                     throw new NumberFormatException();
                 }
                 return maxThreadPool;
-            } catch (Exception e) { }
+            } catch (Exception e){ }
         }
         return 10;
     }
