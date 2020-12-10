@@ -10,14 +10,10 @@ public class ScoreDto {
     private final int score;
     private final int userId;
 
-    public ScoreDto(int level, int score, int userId) {
+    public ScoreDto(final int level, final int score, final int userId) {
         this.level = level;
         this.score = score;
         this.userId = userId;
-    }
-
-    public int getLevel() {
-        return level;
     }
 
     public int getScore() {
@@ -42,11 +38,11 @@ public class ScoreDto {
             return false;
         }
         ScoreDto scoreDto = (ScoreDto) o;
-        return level == scoreDto.level && score == scoreDto.score && userId == scoreDto.userId;
+        return level == scoreDto.level && userId == scoreDto.userId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(level, score, userId);
+        return Objects.hash(level, userId);
     }
 }
