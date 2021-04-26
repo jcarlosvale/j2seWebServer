@@ -40,8 +40,10 @@ public class SessionKeyRepository {
      * It's a synchronized map to avoid concurrent threads to manipulate the map.
      * @param sessionKeyDto DTO to be saved in the Map.
      */
-    public synchronized void save(final SessionKeyDto sessionKeyDto) {
-        mapOfSessionKeyDtoBySessionKey.put(sessionKeyDto.getSessionKey(), sessionKeyDto);
+    public void save(final SessionKeyDto sessionKeyDto) {
+        synchronized(mapOfSessionKeyDtoBySessionKey) {
+            mapOfSessionKeyDtoBySessionKey.put(sessionKeyDto.getSessionKey(), sessionKeyDto);
+        }
     }
 
     /**
